@@ -22,12 +22,13 @@ then
 	exit 1
 fi
 
-rm -rf .git custom-errno
+rm -rf .git custom-errno cpwn
 git init
 sed -i "s/template/$1/g" Makefile
 sed -i "s/template/$1/g" template.c
 mv template.c $1.c
 git submodule add https://github.com/nukingdragons/custom-errno.git custom-errno
+git submodule add https://github.com/nukingdragons/cpwn.git cpwn
 git submodule update --init --recursive --remote
 git add -A .
 git rm --cached prep.sh

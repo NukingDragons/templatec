@@ -17,7 +17,7 @@
 CC := gcc
 
 CFLAGS := -O2
-_CFLAGS := -Iinclude -Icustom-errno/include
+_CFLAGS := -Iinclude -Icpwn/include -Icustom-errno/include
 
 SRCS = custom-errno/error.c \
 	   template.c
@@ -33,6 +33,9 @@ clean:
 	rm -rf template 2>/dev/null || true
 
 # File based rules
+
+cpwn/include/custom-errno.h:
+	git submodule update --init --recursive --remote
 
 custom-errno/error.c:
 	git submodule update --init --recursive --remote

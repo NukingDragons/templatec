@@ -29,6 +29,9 @@ struct args_t
 {
 	// Options
 	uint8_t help:1;
+
+	char *host;
+	char *port;
 };
 
 void usage(char *name, FILE *f)
@@ -43,6 +46,8 @@ void usage(char *name, FILE *f)
 			"Usage: %s [options]\n"
 			"Options:\n"
 			"\t--help,-h\t\tDisplay this help\n"
+			"\t--host,-H\t\tThe hostname or IP of the target\n"
+			"\t--port,-p\t\tThe port of the target\n"
 			,
 			n);
 }
@@ -70,6 +75,20 @@ struct args_t parse_args(int32_t argc, char **argv, int32_t min_args)
 #define check_arg(full, small)		  (!strncmp(full, argv[i], strlen(full)) || !strncmp(small, argv[i], strlen(small)))
 			if      (check_arg("--help", "-h"))
 				args.help = 1;
+			else if (check_arg("--host", "-H"))
+			{
+				if (argc >= i + 1)
+					args.host = argv[++i];
+				else
+					set_errno(EINVAL);
+			}
+			else if (check_arg("--port", "-p"))
+			{
+				if (argc >= i + 1)
+					args.port = argv[++i];
+				else
+					set_errno(EINVAL);
+			}
 			else
 				set_errno(EUNKARG);
 #undef check_arg
@@ -85,12 +104,16 @@ struct args_t parse_args(int32_t argc, char **argv, int32_t min_args)
 int32_t main(int32_t argc, char **argv)
 {
 	int32_t r = 0;
-	struct args_t args = parse_args(argc, argv, 1);
+	struct args_t args = parse_args(argc, argv, 4);
 
 	if (!errno)
 	{
 		if (args.help)
 			usage(argv[0], stdout);
+		else
+		{
+			// Do the exploit I guess
+		}
 	}
 	else
 	{

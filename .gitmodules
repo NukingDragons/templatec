@@ -1,3 +1,6 @@
 [submodule "custom-errno"]
 	path = custom-errno
 	url = https://github.com/nukingdragons/custom-errno.git
+[submodule "cpwn"]
+	path = cpwn
+	url = https://github.com/nukingdragons/cpwn.git
