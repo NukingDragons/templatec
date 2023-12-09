@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <error.h>
+#include <cpwn/tcpconnect.h>
 
 // Name of the program if argv[0] fails
 #define NAME "template"
@@ -101,6 +102,35 @@ struct args_t parse_args(int32_t argc, char **argv, int32_t min_args)
 	return args;
 }
 
+void exploit(char *host, char *port)
+{
+	set_errno(ESUCCESS);
+
+	if (host && port)
+	{
+		int sock = tcpconnect(host, port);
+
+		if (sock)
+		{
+			// Do the exploit :3
+
+			// Print whatever comes over the socket until it closes
+			char c = 0;
+			while(!errno)
+			{
+				if (read(sock, &c, 1) <= 0)
+					break;
+				putchar(c);
+				fflush(stdout);
+			}
+
+			close(sock);
+		}
+	}
+	else
+		set_errno(EINVAL);
+}
+
 int32_t main(int32_t argc, char **argv)
 {
 	int32_t r = 0;
@@ -111,8 +141,12 @@ int32_t main(int32_t argc, char **argv)
 		if (args.help)
 			usage(argv[0], stdout);
 		else
+			exploit(args.host, args.port);
+
+		if (errno)
 		{
-			// Do the exploit I guess
+			fprintf(stderr, "Error: %s\n", errorstr(errno));
+			r = 1;
 		}
 	}
 	else
